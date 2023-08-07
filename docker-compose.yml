@@ -1,0 +1,47 @@
+
+volumes:
+  db-data:
+  pgadmin-data:
+
+services:
+
+  server:
+    container_name: ${SERVER_NAME}
+    image: ${SERVER_NAME}:latest
+    depends_on:
+      - db
+    restart: always
+    ports:
+     - 5000:5000
+
+  db:
+    container_name: pg
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -d ${DB_NAME} -U ${DB_USER}"]
+        interval: 30s
+        timeout: 5s
+        retries: 5
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+
+  admin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    depends_on:
+      - db
+    restart: always
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DB_ADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DB_ADMIN_PASS}
+    ports:
+      - "5050:80"
