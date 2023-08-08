@@ -9,7 +9,6 @@ run: build
 
 .PHONY: build
 build: $(SERVER_SOURCE) deps
-	cargo build
 	sudo docker build -t $(SERVER_NAME):$(BUILD_TAG) .
 
 .PHONY: down
