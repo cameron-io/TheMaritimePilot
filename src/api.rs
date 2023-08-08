@@ -1,12 +1,15 @@
-use crate::db::{NewUser, User, users};
+use crate::db::{User, users};
+use crate::validate::NewUser;
 
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::Json;
+
 use diesel::{SelectableHelper, RunQueryDsl, QueryDsl};
+use deadpool_diesel::postgres::Pool;
 
 pub async fn create_user(
-    State(pool): State<deadpool_diesel::postgres::Pool>,
+    State(pool): State<Pool>,
     Json(new_user): Json<NewUser>
 ) -> Result<Json<User>, (StatusCode, String)> {
     let conn = pool.get().await.map_err(internal_error)?;
@@ -24,7 +27,7 @@ pub async fn create_user(
 }
 
 pub async fn list_users(
-    State(pool): State<deadpool_diesel::postgres::Pool>,
+    State(pool): State<Pool>
 ) -> Result<Json<Vec<User>>, (StatusCode, String)> {
     let conn = pool.get().await.map_err(internal_error)?;
     let res = conn
