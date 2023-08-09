@@ -31,7 +31,11 @@ pub async fn list_users(
 ) -> Result<Json<Vec<User>>, (StatusCode, String)> {
     let conn = pool.get().await.map_err(internal_error)?;
     let res = conn
-        .interact(|conn| users::table.select(User::as_select()).load(conn))
+        .interact(|conn|
+            users::table
+                .select((users::id, users::name, users::email))
+                .order_by(users::id)
+                .load(conn))
         .await
         .map_err(internal_error)?
         .map_err(internal_error)?;

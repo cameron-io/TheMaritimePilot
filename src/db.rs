@@ -1,13 +1,13 @@
 use std::env;
 use deadpool_diesel::postgres::Pool;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use diesel::prelude::*;
+use diesel::{table, Selectable, Queryable};
 
 table! {
     users (id) {
         id -> Integer,
         name -> Text,
-        hair_color -> Nullable<Text>,
+        email -> Nullable<Text>,
     }
 }
 
@@ -15,16 +15,11 @@ table! {
 pub struct User {
     id: i32,
     name: String,
-    hair_color: Option<String>,
+    email: Option<String>,
 }
 
 pub async fn init() -> Pool {
-    let db_url: String = format!("postgresql://{}:{}@{}:{}/{}",
-        env::var("DB_USER").unwrap(),
-        env::var("DB_PASS").unwrap(),
-        env::var("DB_HOST").unwrap(),
-        env::var("DB_PORT").unwrap(),
-        env::var("DB_NAME").unwrap());
+    let db_url: String = env::var("DATABASE_URL").unwrap();
 
     // set up connection pool
     let manager = deadpool_diesel::postgres::Manager::new(db_url, deadpool_diesel::Runtime::Tokio1);
@@ -41,7 +36,7 @@ pub async fn init() -> Pool {
     
     conn.interact(
         |conn| conn.run_pending_migrations(MIGRATIONS)
-            .map(|_| ()))
+                   .map(|_| ()))
         .await
         .unwrap()
         .unwrap();
