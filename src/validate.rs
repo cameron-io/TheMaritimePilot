@@ -1,4 +1,4 @@
-use diesel::prelude::*;
+use diesel::Insertable;
 use serde::Deserialize;
 use crate::db::users;
 
@@ -6,5 +6,5 @@ use crate::db::users;
 #[diesel(table_name = users)]
 pub struct NewUser {
     name: String,
-    hair_color: Option<String>,
+    email: Option<String>,
 }

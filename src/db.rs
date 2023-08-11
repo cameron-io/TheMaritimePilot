@@ -1,7 +1,7 @@
 use std::env;
 use deadpool_diesel::postgres::Pool;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use diesel::{table, Selectable, Queryable};
+use diesel::{table, Selectable, Queryable, PgConnection};
 
 table! {
     users (id) {
@@ -22,8 +22,8 @@ pub async fn init() -> Pool {
     let db_url: String = env::var("DATABASE_URL").unwrap();
 
     // set up connection pool
-    let manager = deadpool_diesel::postgres::Manager::new(db_url, deadpool_diesel::Runtime::Tokio1);
-    let pool = deadpool_diesel::postgres::Pool::builder(manager)
+    let db_manager = deadpool_diesel::postgres::Manager::new(db_url, deadpool_diesel::Runtime::Tokio1);
+    let db_pool = deadpool_diesel::postgres::Pool::builder(db_manager)
         .build()
         .unwrap();
 
@@ -32,14 +32,17 @@ pub async fn init() -> Pool {
     pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("src/migrations");
 
     // run the migrations on server startup
-    let conn = pool.get().await.unwrap();
+    let db_conn = db_pool.get().await.unwrap();
     
-    conn.interact(
-        |conn| conn.run_pending_migrations(MIGRATIONS)
-                   .map(|_| ()))
-        .await
-        .unwrap()
-        .unwrap();
+    // migration must return Result<Vec<MigrationVersion<T>>
+    let migrate_fun = |db_conn: &mut PgConnection|
+        db_conn.run_pending_migrations(MIGRATIONS)
+            .map(|_| ());
 
-    return pool;
+    db_conn.interact(migrate_fun)
+        .await
+        .unwrap() // migrate_fun
+        .unwrap(); // interact
+
+    return db_pool;
 }
