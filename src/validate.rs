@@ -1,10 +1,10 @@
 use diesel::Insertable;
 use serde::Deserialize;
-use crate::db::users;
+use crate::schema::users;
 
 #[derive(Deserialize, Insertable)]
 #[diesel(table_name = users)]
 pub struct NewUser {
-    name: String,
+    username: String,
     email: Option<String>,
 }

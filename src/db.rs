@@ -1,20 +1,13 @@
 use std::env;
 use deadpool_diesel::postgres::Pool;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use diesel::{table, Selectable, Queryable, PgConnection};
-
-table! {
-    users (id) {
-        id -> Integer,
-        name -> Text,
-        email -> Nullable<Text>,
-    }
-}
+use diesel::{Selectable, Queryable, PgConnection};
+use crate::schema::users;
 
 #[derive(serde::Serialize, Selectable, Queryable)]
 pub struct User {
     id: i32,
-    name: String,
+    username: String,
     email: Option<String>,
 }
 
@@ -29,7 +22,7 @@ pub async fn init() -> Pool {
 
     // this embeds the migrations into the application binary
     // the migration path is relative to the `CARGO_MANIFEST_DIR`
-    pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("src/migrations");
+    pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
     // run the migrations on server startup
     let db_conn = db_pool.get().await.unwrap();

@@ -1,14 +1,16 @@
 extern crate dotenv;
 use dotenv::dotenv;
+use std::env;
 
 use axum::{
     routing::{get, post},
     Router
 };
 use std::net::SocketAddr;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, fmt};
 
 mod api;
+mod schema;
 mod db;
 mod validate;
 mod util;
@@ -29,10 +31,14 @@ mod util;
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+    
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| "maritime_pilot_postgres=debug".into()))
-        .with(tracing_subscriber::fmt::layer())
+        .with(EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| format!(
+                "{}_postgres=debug",
+                env::var("SERVER_NAME").unwrap())
+            .into()))
+        .with(fmt::layer())
         .init();
 
     // initialize db connection & make migrations

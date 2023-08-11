@@ -1,4 +1,5 @@
-use crate::db::{User, users};
+use crate::schema::users;
+use crate::db::User;
 use crate::validate::NewUser;
 use crate::util::internal_error;
 
@@ -34,7 +35,7 @@ pub async fn list_users(
     let res = db_conn
         .interact(|db_conn|
             users::table
-                .select((users::id, users::name, users::email))
+                .select((users::id, users::username, users::email))
                 .order_by(users::id)
                 .load(db_conn))
         .await
