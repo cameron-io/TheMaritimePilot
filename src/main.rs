@@ -30,29 +30,34 @@ mod util;
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
+    dotenv().unwrap();
     
     tracing_subscriber::registry()
-        .with(EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| format!(
-                "{}_postgres=debug",
-                env::var("SERVER_NAME").unwrap())
-            .into()))
+        .with(
+            EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| format!(
+                    "{}_postgres=debug",
+                    env::var("SERVER_NAME").unwrap())
+                    .into()
+                )
+        )
         .with(fmt::layer())
         .init();
 
     // initialize db connection & make migrations
     let db_pool = db::init().await;
 
-    // build our application with some routes
+    // routes
     let app = Router::new()
         .route("/user/list", get(api::list_users))
         .route("/user/create", post(api::create_user))
         .with_state(db_pool);
 
-    // run it with hyper
+    // setup socket
     let addr = SocketAddr::from(([0, 0, 0, 0], 5000));
     tracing::debug!("listening on {}", addr);
+
+    // run
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
