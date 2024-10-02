@@ -1,15 +1,7 @@
 use std::env;
 use deadpool_diesel::postgres::Pool;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
-use diesel::{Selectable, Queryable, PgConnection};
-use crate::schema::users;
-
-#[derive(serde::Serialize, Selectable, Queryable)]
-pub struct User {
-    id: i32,
-    username: String,
-    email: Option<String>,
-}
+use diesel::PgConnection;
 
 pub async fn init() -> Pool {
     let db_url: String = env::var("DATABASE_URL").unwrap();
