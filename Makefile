@@ -3,18 +3,18 @@ SHELL := /bin/bash
 SERVER_NAME := maritime_pilot
 BUILD_TAG := latest
 
-.PHONY: run
-run: build
-	sudo docker compose up -d server
+.PHONY: dev
+dev: build
+	docker compose up -d server
 
 .PHONY: build
-build: $(SERVER_SOURCE) deps
-	sudo docker build -t $(SERVER_NAME):$(BUILD_TAG) .
+build: $(SERVER_SOURCE)
+	docker build -t $(SERVER_NAME):$(BUILD_TAG) .
 
 .PHONY: down
 down:
-	sudo docker compose down
+	docker compose down
 
-.PHONY: admin
-admin:
-	sudo docker compose up -d admin
+.PHONY: clean
+clean:
+	rm -rf target
