@@ -1,7 +1,6 @@
 
 volumes:
   db-data:
-  pgadmin-data:
 
 services:
 
@@ -16,7 +15,7 @@ services:
 
   db:
     container_name: pg
-    image: postgres:15
+    image: postgres:latest
     restart: always
     environment:
       POSTGRES_USER: ${DATABASE_USER}
@@ -31,17 +30,3 @@ services:
         retries: 5
     ports:
       - "${DATABASE_PORT}:${DATABASE_PORT}"
-
-  admin:
-    container_name: pgadmin
-    image: dpage/pgadmin4
-    depends_on:
-      - db
-    restart: always
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${DATABASE_ADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${DATABASE_ADMIN_PASS}
-    ports:
-      - "5050:80"
